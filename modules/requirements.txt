@@ -1,0 +1,15 @@
+# Core Requirements
+numpy
+scipy
+setuptools
+tensorboard
+
+# Plotting & Data Handling
+matplotlib
+pandas
+
+# Testing & formatting
+pytest
+pytest-timeout
+pytest-html
+flake8
