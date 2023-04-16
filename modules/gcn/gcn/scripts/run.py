@@ -218,22 +218,22 @@ if __name__ == "__main__":
 
     if args.run1:
         print('No early stopping tolerance set and w/o batch normalization')
-        # val_acc_list, val_loss_list, out_features = single_run1(
-        #     model, features, optimizer, adj, idx_train, idx_test,
-        #     idx_val, labels, epochs=200)
+        val_acc_list, val_loss_list, out_features = single_run1(
+            model, features, optimizer, adj, idx_train, idx_test,
+            idx_val, labels, epochs=200)
     elif args.run2:
         print('Early stopping tolerance set but w/o batch normalization')
-        # val_acc_list, val_loss_list, out_features = single_run2(
-        #     model, features, optimizer, adj, idx_train, idx_test,
-        #     idx_val, labels, epochs=200)
+        val_acc_list, val_loss_list, out_features = single_run2(
+            model, features, optimizer, adj, idx_train, idx_test,
+            idx_val, labels, epochs=200)
     elif args.run3:
         print('No early stopping tolerance set but with batch normalization')
-        # val_acc_list, val_loss_list, out_features = single_run3(
-        #     model, features, optimizer, adj, idx_train, idx_test,
-        #     idx_val, labels, epochs=200)
+        val_acc_list, val_loss_list, out_features = single_run3(
+            model, features, optimizer, adj, idx_train, idx_test,
+            idx_val, labels, epochs=200)
     else:
         print('Running for 100 iterations of experiments')
-        # avg_test_acc_list, avg_test_loss_list = multiple_runs(
-        #     model, features, optimizer, adj, idx_train, idx_test, 
-        #     idx_val, labels, iter=100, epochs=200)
+        avg_test_acc_list, avg_test_loss_list = multiple_runs(
+            model, features, optimizer, adj, idx_train, idx_test, 
+            idx_val, labels, iter=100, epochs=200)
     print('Done!')
