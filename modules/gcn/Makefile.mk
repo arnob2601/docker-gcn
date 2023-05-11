@@ -105,3 +105,14 @@ eval: $(eval-seeds)
 # 	$(MAKE) lsp-cond-results
 
 
+recommend-seeds = /data/$(BASENAME)/results/$(EXPERIMENT_NAME)/recommend.txt
+$(recommend-seeds): $(train-file)
+	@mkdir -p $(DATA_BASE_DIR)/$(BASENAME)/results/$(EXPERIMENT_NAME)
+	@$(call xhost_activate)
+	@$(DOCKER_PYTHON) -m gcn.scripts.recommend \
+		$(EVAL_ARGS) \
+	 	--logfile recommend.txt \
+	 	--seed 420 \
+
+.PHONY: recommend
+recommend: $(recommend-seeds)
