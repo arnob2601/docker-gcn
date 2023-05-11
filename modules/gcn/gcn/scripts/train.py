@@ -11,8 +11,6 @@ from gcn.learning.models import nGCN
 
 # Define the training loop
 def train(model, data, index, train_writer, test_writer, scheduler, device='cpu', args=None):
-    torch.manual_seed(8616)
-    
     optimizer.zero_grad()
 
     out = model.forward(data['x'], data['edge'], device)
@@ -36,7 +34,6 @@ if __name__ == "__main__":
     # Get the necessary hyper-parameters and other required parameters in
     # the form of arguments.
     args = gcn.utils.get_parser()
-    
     train_writer_str = 'train'
     train_writer = SummaryWriter(
         log_dir=os.path.join(args.save_dir, train_writer_str))
@@ -45,6 +42,7 @@ if __name__ == "__main__":
         log_dir=os.path.join(args.save_dir, test_writer_str))
 
     cuda = torch.cuda.is_available()
+    random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     if cuda:
