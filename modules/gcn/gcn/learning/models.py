@@ -95,7 +95,7 @@ class nGCN(torch.nn.Module):
     
     def loss(self, output, target, writer=None, index=None):
         loss_fn = torch.nn.MSELoss()
-        loss = torch.sqrt(loss_fn(output, target.unsqueeze(1)))
+        loss = loss_fn(output, target.unsqueeze(1))
         # Logging
         if writer is not None:
             writer.add_scalar("Loss",
