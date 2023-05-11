@@ -83,6 +83,8 @@ if __name__ == "__main__":
     test_loss_vec = []
 
     counter = 0
+    label_count = R.count().sum()
+    print(f"Total available labels: {label_count}")
     while counter < limit:
         row = random.randint(0, NUM_ROWs - 1)
         col = random.randint(0, NUM_COLs - 1)
@@ -95,8 +97,10 @@ if __name__ == "__main__":
                 scheduler, device, args)
             scheduler.step()
             counter += 1
-            print(f"Step {counter}, Train-Loss: {loss:.4f}")
+            
             if counter % 10 == 0:
+                print(f"Step {counter}, Train-Loss: {loss:.4f}")
+            if counter % 100 == 0:
                 print(f"Step {counter}, Test-Loss: {test_loss:.4f}")
 
     # Saving the model after training
