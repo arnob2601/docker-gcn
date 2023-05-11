@@ -29,11 +29,7 @@ TRAINING_ARGS ?= --test_log_frequency 10 \
 
 EVAL_ARGS ?= $(CORE_ARGS) \
 		--save_dir /data/$(BASENAME)/results/$(EXPERIMENT_NAME) \
-		--network_file /data/$(BASENAME)/logs/$(EXPERIMENT_NAME)/model.pt \
-		--cnn_network_file /data/$(BASENAME)/logs/$(EXPERIMENT_NAME)/lsp.pt \
-		--gcn_network_file /data/$(BASENAME)/logs/$(EXPERIMENT_NAME)/mlsp.pt \
-		--autoencoder_network_file /data/$(BASENAME)/logs/$(EXPERIMENT_NAME)/AutoEncoder.pt \
-		--input_type $(INPUT_TYPE)
+		--network_file /data/$(BASENAME)/logs/$(EXPERIMENT_NAME)/model.pt
 
 
 run1-file = $(DATA_BASE_DIR)/$(BASENAME)/logs/$(EXPERIMENT_NAME)/run1.pt 
@@ -79,6 +75,21 @@ run-multi: DOCKER_ARGS ?= -it
 run-multi: $(multi-file)
 
 
+
+train-file = $(DATA_BASE_DIR)/$(BASENAME)/logs/$(EXPERIMENT_NAME)/model.pt 
+$(train-file):
+	@$(DOCKER_PYTHON) -m gcn.scripts.train \
+		$(CORE_ARGS) \
+		--save_dir /data/$(BASENAME)/logs/$(EXPERIMENT_NAME) \
+		--num_steps 10000 \
+		--lr 1e-1 \
+		--weight_decay .4 \
+		--epochs 2000 \
+
+.PHONY: train
+train: DOCKER_ARGS ?= -it
+train: $(train-file)
+
 # lsp-cond-train-file = $(DATA_BASE_DIR)/$(BASENAME)/logs/$(EXPERIMENT_NAME)/model.pt 
 # $(lsp-cond-train-file): $(lsp-cond-autoencoder-train-file)
 # 	@$(DOCKER_PYTHON) -m lsp_cond.scripts.train \
@@ -119,16 +130,16 @@ run-multi: $(multi-file)
 # 		do echo "$(DATA_BASE_DIR)/$(BASENAME)/results/$(EXPERIMENT_NAME)/maze_learned_$${ii}.png"; done)
 # $(lsp-cond-eval-seeds): seed = $(shell echo $@ | grep -Eo '[0-9]+' | tail -1)
 # $(lsp-cond-eval-seeds): $(lsp-cond-cnn-train-file)
-# $(lsp-cond-eval-seeds): $(lsp-cond-marginal-train-file)
-# 	@mkdir -p $(DATA_BASE_DIR)/$(BASENAME)/results/$(EXPERIMENT_NAME)
-# 	@$(call xhost_activate)
-# 	@$(DOCKER_PYTHON) -m lsp_cond.scripts.evaluate \
-# 		$(EVAL_ARGS) \
-# 	 	--current_seed $(seed) \
-# 	 	--image_filename maze_learned_$(seed).png
+eval-seeds = /data/$(BASENAME)/results/$(EXPERIMENT_NAME)/logfile.txt
+$(eval-seeds): $(train-file)
+	@mkdir -p $(DATA_BASE_DIR)/$(BASENAME)/results/$(EXPERIMENT_NAME)
+	@$(call xhost_activate)
+	@$(DOCKER_PYTHON) -m gcn.scripts.eval \
+		$(EVAL_ARGS) \
+	 	--logfile logfile.txt
 
-# .PHONY: lsp-cond-eval
-# lsp-cond-eval: $(lsp-cond-eval-seeds)
+.PHONY: eval
+eval: $(eval-seeds)
 # 	$(MAKE) lsp-cond-results
 
 
