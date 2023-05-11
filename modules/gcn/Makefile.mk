@@ -81,10 +81,10 @@ $(train-file):
 	@$(DOCKER_PYTHON) -m gcn.scripts.train \
 		$(CORE_ARGS) \
 		--save_dir /data/$(BASENAME)/logs/$(EXPERIMENT_NAME) \
-		--num_steps 20000 \
-		--lr 1e-1 \
-		--weight_decay .4 \
-		--epochs 4000 \
+		--num_steps 12000 \
+		--lr 5e-1 \
+		--weight_decay .5 \
+		--epochs 1000 \
 
 .PHONY: train
 train: DOCKER_ARGS ?= -it
