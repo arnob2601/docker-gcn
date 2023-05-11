@@ -173,27 +173,63 @@ def construct_feed_dict(features, support, labels, labels_mask, placeholders):
     return feed_dict
 
 
-# def chebyshev_polynomials(adj, k):
-#     """Calculate Chebyshev polynomials up to order k. Return a list of sparse matrices (tuple representation)."""
-#     print("Calculating Chebyshev polynomials up to order {}...".format(k))
+def get_graph(R, user, movie, user_avg_rating, movie_avg_rating):
+    node_features = []
+    edge_index = []
+    train_mask = []
+    test_mask = []
+    label = []
 
-#     adj_normalized = normalize_adj(adj)
-#     laplacian = sp.eye(adj.shape[0]) - adj_normalized
-#     largest_eigval, _ = eigsh(laplacian, 1, which='LM')
-#     scaled_laplacian = (2. / largest_eigval[0]) * laplacian - sp.eye(adj.shape[0])
+    # add the user and the movie node first
 
-#     t_k = list()
-#     t_k.append(sp.eye(adj.shape[0]))
-#     t_k.append(scaled_laplacian)
+    node_features.append(np.array([user_avg_rating[user + 1], 0]))  #  + 1 is applied to offset the index from 0 to 1 to map avg rating
+    node_features.append(np.array([movie_avg_rating[movie], 1]))
+    train_mask.append(False)
+    train_mask.append(False)
+    test_mask.append(False)
+    test_mask.append(True)
+    label.append(0)
+    label.append(R.iloc[user, movie])
 
-#     def chebyshev_recurrence(t_k_minus_one, t_k_minus_two, scaled_lap):
-#         s_lap = sp.csr_matrix(scaled_lap, copy=True)
-#         return 2 * s_lap.dot(t_k_minus_one) - t_k_minus_two
+    edge_index.append([0, 1])
 
-#     for i in range(2, k+1):
-#         t_k.append(chebyshev_recurrence(t_k[-1], t_k[-2], scaled_laplacian))
+    # get movies rated by this user
+    user_row = R.iloc[user - 1, :]
+    movie_list = user_row[user_row.notnull()].index
+    if len(movie_list) <= 1:
+        return None
 
-#     return sparse_to_tuple(t_k)
+    num_of_nodes = 2
+    for movie_name in movie_list:
+        mm = R.columns.get_loc(movie_name)
+        node_features.append(np.array([movie_avg_rating[mm], 3]))
+        train_mask.append(True)
+        test_mask.append(False)
+        edge_index.append([0, num_of_nodes])
+        label.append(R.iloc[user - 1, mm])
+        num_of_nodes += 1
+
+    # get users who have rated this movie
+    user_list = R.loc[R.iloc[:, movie].notnull()].index
+
+    for uu in user_list:
+        # print(uu, user_avg_rating[uu])
+        node_features.append(np.array([user_avg_rating[uu], 2]))
+        train_mask.append(False)
+        test_mask.append(False)
+        edge_index.append([1, num_of_nodes])
+        label.append(0)
+        num_of_nodes += 1
+
+    assert len(node_features) == len(label)
+
+    return {
+        'x': torch.tensor(np.array(node_features), dtype=torch.float),
+        'edge': torch.tensor(list(zip(*edge_index)), dtype=torch.long),
+        'y': torch.tensor(np.array(label), dtype=torch.float),
+        'train_mask': train_mask,
+        'test_mask': test_mask
+    }
 
 
 def get_parser():
@@ -209,6 +245,8 @@ def get_parser():
                         default=42, help='The seed for the random number generation')
     parser.add_argument('--hidden_units', type=int, required=False,
                         default=16, help='The number of hidden units for each conv layer')
+    parser.add_argument('--num_steps', type=int, required=False,
+                        default=10000, help='The dropout rate during training')
     parser.add_argument('--dropout', type=float, required=False,
                         default=0.5, help='The dropout rate during training')
     parser.add_argument('--lr', type=float, required=False,
@@ -222,4 +260,10 @@ def get_parser():
     parser.add_argument('--run1', action='store_true')
     parser.add_argument('--run2', action='store_true')
     parser.add_argument('--run3', action='store_true')
+    parser.add_argument('--logfile',
+                        type=str,
+                        required=False,
+                        help='Name of the logfile to save predictions')
+    parser.add_argument('--network_file', type=str, required=False,
+                        help='Path of the network file')
     return parser.parse_args()
