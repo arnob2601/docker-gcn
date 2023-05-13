@@ -5,6 +5,9 @@ You need to have nvidia-docker installed.
 
 Run the following command from inside command line from the root directory of the project.
 
+To run the recommendation code
+```sudo make build && sudo make recommend EXPERIMENT_NAME='Your choice of experiment name'```
+
 To run for single iteration with no early stopping tolerance and without batch normalization
 ```sudo make build && sudo make run-1```
 
