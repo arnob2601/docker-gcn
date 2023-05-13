@@ -59,7 +59,7 @@ if __name__ == "__main__":
         
         for movie_idx, rating in enumerate(user_ratings):
             if 0 <= rating <= 5:
-                ratings.iloc[user, movie_idx] = -1
+                ratings.iloc[user, movie_idx] = -10000
             else: 
                 datum = gcn.utils.get_graph(R, user, movie_idx, user_avg_rating, movie_avg_rating)
 
