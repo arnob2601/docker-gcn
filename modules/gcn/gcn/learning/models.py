@@ -73,25 +73,28 @@ class nGCN(torch.nn.Module):
         torch.manual_seed(8616)
         self._args = args
         self.fc1 = nn.Linear(2, 8)
-        self.fc2 = nn.Linear(8, 8)
-        self.fc3 = nn.Linear(8, 8)
-        self.conv1 = GCNConv(8, hidden_channels)
+        self.fc2 = nn.Linear(8, 16)
+        self.fc3 = nn.Linear(16, 32)
+        self.conv1 = GCNConv(32, hidden_channels)
         self.conv2 = GCNConv(hidden_channels, 1)
 
         self.bn1 = nn.BatchNorm1d(8)
-        self.bn2 = nn.BatchNorm1d(8)
-        self.bn3 = nn.BatchNorm1d(8)
+        self.bn2 = nn.BatchNorm1d(16)
+        self.bn3 = nn.BatchNorm1d(32)
 
     def forward(self, x, edge_index, device='cpu'):
         x = x.to(device)
-        edge_index = edge_index.to(device)
+        edge_data = edge_index
+        A = torch.cat((edge_data[0], edge_data[1]), 0)
+        B = torch.cat((edge_data[1], edge_data[0]), 0)
+        edge_data = torch.reshape(torch.cat((A, B), 0), (2, -1))
+        edge_index = edge_data.to(device)
         x = F.leaky_relu(self.bn1(self.fc1(x)), 0.1)
-        x = F.leaky_relu(self.bn1(self.fc2(x)), 0.1)
-        x = F.leaky_relu(self.bn1(self.fc3(x)), 0.1)
+        x = F.leaky_relu(self.bn2(self.fc2(x)), 0.1)
+        x = F.leaky_relu(self.bn3(self.fc3(x)), 0.1)
         x = F.leaky_relu(self.conv1(x, edge_index), 0.1)
-        x = F.dropout(x, training=self.training)
         x = self.conv2(x, edge_index)
-        return x  # F.log_softmax(x, dim=1)
+        return x  # Returning logits
     
     def loss(self, output, target, writer=None, index=None):
         loss_fn = torch.nn.MSELoss()
